@@ -1,0 +1,12 @@
+*.tif
+*.tiff
+*.img
+*.pt
+*.pth
+data/
+models/
+results/
+__pycache__/
+.ipynb_checkpoints/
+*.pyc
+
