@@ -12,9 +12,6 @@ MIN_TREE_FRACTION = 0.01
 EPSG              = 3006
 
 # ── city definitions ────────────────────────────────────────────────────────
-# Stockholm excluded - RGBI capture is early leaf flush (spring 2023)
-# Will use Malmo+Gothenburg trained model for inference
-# Revisit if leaf-on imagery becomes available
 CITIES = {
     "malmo": {
         "rgbi_dir":      os.path.expanduser(
@@ -25,6 +22,7 @@ CITIES = {
             "~/bw_treenet/data/processed/malmo/tiles/images/"),
         "out_labels":    os.path.expanduser(
             "~/bw_treenet/data/processed/malmo/tiles/labels/"),
+        "skip_if_exists": True,
     },
     "gtb": {
         "rgbi_dir":      os.path.expanduser(
@@ -35,6 +33,19 @@ CITIES = {
             "~/bw_treenet/data/processed/gtb/tiles/images/"),
         "out_labels":    os.path.expanduser(
             "~/bw_treenet/data/processed/gtb/tiles/labels/"),
+        "skip_if_exists": True,
+    },
+    "gtb_2016": {
+        "rgbi_dir":      os.path.expanduser(
+            "~/bw_treenet/data/raw/gtb/OF_10s_gtb"),
+        "canopy_raster": os.path.expanduser(
+            "~/bw_treenet/data/processed/gtb/canopy_binary_05m.tif"),
+        "out_images":    os.path.expanduser(
+            "~/bw_treenet/data/processed/gtb/tiles/images/"),
+        "out_labels":    os.path.expanduser(
+            "~/bw_treenet/data/processed/gtb/tiles/labels/"),
+        "year_filter":   "2016",
+        "skip_if_exists": False,
     },
 }
 
@@ -46,10 +57,12 @@ def world_to_pixel(x, y, gt):
 
 
 def process_city(city_name, cfg):
-    rgbi_dir    = cfg["rgbi_dir"]
-    canopy_path = cfg["canopy_raster"]
-    out_images  = cfg["out_images"]
-    out_labels  = cfg["out_labels"]
+    rgbi_dir      = cfg["rgbi_dir"]
+    canopy_path   = cfg["canopy_raster"]
+    out_images    = cfg["out_images"]
+    out_labels    = cfg["out_labels"]
+    year_filter   = cfg.get("year_filter", None)
+    skip_if_exists = cfg.get("skip_if_exists", True)
 
     if not os.path.exists(rgbi_dir):
         print(f"\n[{city_name}] RGBI directory not found: {rgbi_dir} -- skipping")
@@ -59,6 +72,13 @@ def process_city(city_name, cfg):
         print(f"\n[{city_name}] Canopy raster not found: {canopy_path} -- skipping")
         return 0, 0
 
+    # skip if already tiled
+    existing = len([f for f in os.listdir(out_images)
+                    if f.endswith('.tif')]) if os.path.exists(out_images) else 0
+    if existing > 0 and skip_if_exists:
+        print(f"\n[{city_name}] Already has {existing} tiles -- skipping")
+        return existing, 0
+
     Path(out_images).mkdir(parents=True, exist_ok=True)
     Path(out_labels).mkdir(parents=True, exist_ok=True)
 
@@ -66,8 +86,12 @@ def process_city(city_name, cfg):
     canopy_gt = canopy_ds.GetGeoTransform()
 
     rgbi_tiles = sorted([
-        f for f in os.listdir(rgbi_dir) if f.endswith(".tif")])
-    print(f"\n[{city_name}] Found {len(rgbi_tiles)} RGBI tiles")
+        f for f in os.listdir(rgbi_dir)
+        if f.endswith(".tif") and
+        (year_filter is None or year_filter in f)])
+
+    print(f"\n[{city_name}] Found {len(rgbi_tiles)} RGBI tiles"
+          + (f" (filtered to {year_filter})" if year_filter else ""))
 
     srs = osr.SpatialReference()
     srs.ImportFromEPSG(EPSG)
@@ -84,8 +108,6 @@ def process_city(city_name, cfg):
 
         tile_xmin = gt[0]
         tile_ymax = gt[3]
-        tile_xmax = tile_xmin + ds.RasterXSize * gt[1]
-        tile_ymin = tile_ymax + ds.RasterYSize * gt[5]
         src_res   = abs(gt[1])
 
         scale = src_res / TARGET_RES
@@ -126,7 +148,7 @@ def process_city(city_name, cfg):
                 # skip if outside canopy raster bounds
                 if (c_col < 0 or c_row < 0 or
                     c_col + TILE_SIZE > canopy_ds.RasterXSize or
-                    c_row + TILE_SIZE > canopy_ds.RasterYSize):
+                        c_row + TILE_SIZE > canopy_ds.RasterYSize):
                     tile_skipped += 1
                     continue
 
