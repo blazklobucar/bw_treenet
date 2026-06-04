@@ -37,7 +37,7 @@ CITIES = {
     },
     "gtb_2016": {
         "rgbi_dir":      os.path.expanduser(
-            "~/bw_treenet/data/raw/gtb/OF_10s_gtb"),
+            "~/bw_treenet/data/raw/gtb/IRF_latest_gtb"),
         "canopy_raster": os.path.expanduser(
             "~/bw_treenet/data/processed/gtb/canopy_binary_05m.tif"),
         "out_images":    os.path.expanduser(
@@ -46,6 +46,17 @@ CITIES = {
             "~/bw_treenet/data/processed/gtb/tiles/labels/"),
         "year_filter":   "2016",
         "skip_if_exists": False,
+    },
+    "sth": {
+        "rgbi_dir":      os.path.expanduser(
+            "~/bw_treenet/data/raw/sth/rgb_latest_sth"),
+        "canopy_raster": os.path.expanduser(
+            "~/bw_treenet/data/processed/sth/canopy_binary_05m.tif"),
+        "out_images":    os.path.expanduser(
+            "~/bw_treenet/data/processed/sth/tiles/images/"),
+        "out_labels":    os.path.expanduser(
+            "~/bw_treenet/data/processed/sth/tiles/labels/"),
+        "skip_if_exists": True,
     },
 }
 
@@ -57,11 +68,11 @@ def world_to_pixel(x, y, gt):
 
 
 def process_city(city_name, cfg):
-    rgbi_dir      = cfg["rgbi_dir"]
-    canopy_path   = cfg["canopy_raster"]
-    out_images    = cfg["out_images"]
-    out_labels    = cfg["out_labels"]
-    year_filter   = cfg.get("year_filter", None)
+    rgbi_dir       = cfg["rgbi_dir"]
+    canopy_path    = cfg["canopy_raster"]
+    out_images     = cfg["out_images"]
+    out_labels     = cfg["out_labels"]
+    year_filter    = cfg.get("year_filter", None)
     skip_if_exists = cfg.get("skip_if_exists", True)
 
     if not os.path.exists(rgbi_dir):

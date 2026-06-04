@@ -19,15 +19,17 @@ from util.augmentation import (RandomFlip, RandomBrightness, RandomNoise,
 IMAGES_DIRS = [
     os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles/images/"),
     os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed/sth/tiles/images/"),
 ]
 LABELS_DIRS = [
     os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles/labels/"),
     os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed/sth/tiles/labels/"),
 ]
 WEIGHTS_DIR = os.path.expanduser("~/bw_treenet/models/")
-LOG_FILE    = os.path.expanduser("~/bw_treenet/results/training_log_v2.csv")
+LOG_FILE    = os.path.expanduser("~/bw_treenet/results/training_log_v3.csv")
 PRETRAINED  = os.path.expanduser(
-    "~/bw_treenet/models/BWTreeNet_SwissHistorical_1980s.pth")
+    "~/bw_treenet/models/bwtreenet_malmo_gtb_best.pt")
 
 Path(WEIGHTS_DIR).mkdir(parents=True, exist_ok=True)
 Path(os.path.expanduser("~/bw_treenet/results")).mkdir(parents=True, exist_ok=True)
@@ -164,13 +166,13 @@ for epoch in range(1, EPOCHS + 1):
     if avg_val_iou > best_val_iou:
         best_val_iou = avg_val_iou
         torch.save(model.state_dict(),
-                   os.path.join(WEIGHTS_DIR, "bwtreenet_malmo_gtb_best.pt"))
+                   os.path.join(WEIGHTS_DIR, "bwtreenet_all_cities_best.pt"))
         print(f"  --> saved best model (val_iou={best_val_iou:.4f})")
 
     if epoch % SAVE_EVERY == 0:
         torch.save(model.state_dict(),
                    os.path.join(WEIGHTS_DIR,
-                                f"bwtreenet_malmo_gtb_epoch{epoch}.pt"))
+                                f"bwtreenet_all_cities_epoch{epoch}.pt"))
 
 print(f"\nTraining complete. Best val IoU: {best_val_iou:.4f}")
 print(f"Log saved to {LOG_FILE}")
