@@ -12,7 +12,9 @@ MIN_TREE_FRACTION = 0.01
 EPSG              = 3006
 
 # ── city definitions ────────────────────────────────────────────────────────
-# each city needs: rgbi_dir, canopy_raster, out_dir
+# Stockholm excluded - RGBI capture is early leaf flush (spring 2023)
+# Will use Malmo+Gothenburg trained model for inference
+# Revisit if leaf-on imagery becomes available
 CITIES = {
     "malmo": {
         "rgbi_dir":      os.path.expanduser(
@@ -34,16 +36,6 @@ CITIES = {
         "out_labels":    os.path.expanduser(
             "~/bw_treenet/data/processed/gtb/tiles/labels/"),
     },
-    "sth": {
-        "rgbi_dir":      os.path.expanduser(
-            "~/bw_treenet/data/raw/sth/rgbi_latest"),
-        "canopy_raster": os.path.expanduser(
-            "~/bw_treenet/data/processed/sth/canopy_binary_05m.tif"),
-        "out_images":    os.path.expanduser(
-            "~/bw_treenet/data/processed/sth/tiles/images/"),
-        "out_labels":    os.path.expanduser(
-            "~/bw_treenet/data/processed/sth/tiles/labels/"),
-    },
 }
 
 # ── helpers ─────────────────────────────────────────────────────────────────
@@ -52,18 +44,17 @@ def world_to_pixel(x, y, gt):
     row = int((y - gt[3]) / gt[5])
     return col, row
 
-def process_city(city_name, cfg):
-    rgbi_dir      = cfg["rgbi_dir"]
-    canopy_path   = cfg["canopy_raster"]
-    out_images    = cfg["out_images"]
-    out_labels    = cfg["out_labels"]
 
-    # check rgbi dir exists
+def process_city(city_name, cfg):
+    rgbi_dir    = cfg["rgbi_dir"]
+    canopy_path = cfg["canopy_raster"]
+    out_images  = cfg["out_images"]
+    out_labels  = cfg["out_labels"]
+
     if not os.path.exists(rgbi_dir):
         print(f"\n[{city_name}] RGBI directory not found: {rgbi_dir} -- skipping")
         return 0, 0
 
-    # check canopy exists
     if not os.path.exists(canopy_path):
         print(f"\n[{city_name}] Canopy raster not found: {canopy_path} -- skipping")
         return 0, 0
@@ -71,11 +62,9 @@ def process_city(city_name, cfg):
     Path(out_images).mkdir(parents=True, exist_ok=True)
     Path(out_labels).mkdir(parents=True, exist_ok=True)
 
-    # load canopy raster
     canopy_ds = gdal.Open(canopy_path)
     canopy_gt = canopy_ds.GetGeoTransform()
 
-    # get rgbi tiles
     rgbi_tiles = sorted([
         f for f in os.listdir(rgbi_dir) if f.endswith(".tif")])
     print(f"\n[{city_name}] Found {len(rgbi_tiles)} RGBI tiles")
@@ -99,12 +88,10 @@ def process_city(city_name, cfg):
         tile_ymin = tile_ymax + ds.RasterYSize * gt[5]
         src_res   = abs(gt[1])
 
-        # resample to 0.5m grayscale
-        scale     = src_res / TARGET_RES
-        out_w     = int(ds.RasterXSize * scale)
-        out_h     = int(ds.RasterYSize * scale)
+        scale = src_res / TARGET_RES
+        out_w = int(ds.RasterXSize * scale)
+        out_h = int(ds.RasterYSize * scale)
 
-        # handle both grayscale and RGB/RGBI
         n_bands = ds.RasterCount
         if n_bands >= 3:
             r = ds.GetRasterBand(1).ReadAsArray(
@@ -118,7 +105,6 @@ def process_city(city_name, cfg):
             gray = ds.GetRasterBand(1).ReadAsArray(
                 buf_xsize=out_w, buf_ysize=out_h)
 
-        # find matching canopy region
         canopy_col, canopy_row = world_to_pixel(
             tile_xmin, tile_ymax, canopy_gt)
 
@@ -136,6 +122,14 @@ def process_city(city_name, cfg):
 
                 c_row = canopy_row + row * TILE_SIZE
                 c_col = canopy_col + col * TILE_SIZE
+
+                # skip if outside canopy raster bounds
+                if (c_col < 0 or c_row < 0 or
+                    c_col + TILE_SIZE > canopy_ds.RasterXSize or
+                    c_row + TILE_SIZE > canopy_ds.RasterYSize):
+                    tile_skipped += 1
+                    continue
+
                 lbl_patch = canopy_ds.GetRasterBand(1).ReadAsArray(
                     c_col, c_row, TILE_SIZE, TILE_SIZE)
 
@@ -185,7 +179,7 @@ def process_city(city_name, cfg):
     return total_saved, total_skipped
 
 
-# ── run all cities ──────────────────────────────────────────────────────────
+# ── run ─────────────────────────────────────────────────────────────────────
 print("Starting multi-city tile preparation...")
 grand_total = 0
 
