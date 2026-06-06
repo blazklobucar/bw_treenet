@@ -20,25 +20,23 @@ IMAGES_DIRS = [
     os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles/images/"),
     os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles/images/"),
     os.path.expanduser("~/bw_treenet/data/processed/sth/tiles/images/"),
-    os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles_1960/images/"),
 ]
 LABELS_DIRS = [
     os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles/labels/"),
     os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles/labels/"),
     os.path.expanduser("~/bw_treenet/data/processed/sth/tiles/labels/"),
-    os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles_1960/labels/"),
 ]
 WEIGHTS_DIR = os.path.expanduser("~/bw_treenet/models/")
-LOG_FILE    = os.path.expanduser("~/bw_treenet/results/training_log_v8.csv")
+LOG_FILE    = os.path.expanduser("~/bw_treenet/results/training_log_v4.csv")
 PRETRAINED  = os.path.expanduser(
-    "~/bw_treenet/models/bwtreenet_v8_best.pt")  # resume from v3 best
+    "~/bw_treenet/models/bwtreenet_all_cities_best.pt")  # resume from v3 best
 
 Path(WEIGHTS_DIR).mkdir(parents=True, exist_ok=True)
 Path(os.path.expanduser("~/bw_treenet/results")).mkdir(parents=True, exist_ok=True)
 
-EPOCHS      = 60           # cap at 40; ReduceLROnPlateau will manage descent
-BATCH_SIZE  = 2
-LR          = 0.001       # 10x lower than v3 — fine-tuning from checkpoint
+EPOCHS      = 40           # cap at 40; ReduceLROnPlateau will manage descent
+BATCH_SIZE  = 1
+LR          = 0.0001       # 10x lower than v3 — fine-tuning from checkpoint
 VAL_SPLIT   = 0.2
 N_CLASSES   = 2
 DEVICE      = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -192,7 +190,7 @@ for epoch in range(1, EPOCHS + 1):
         best_val_iou      = avg_val_iou
         epochs_no_improve = 0
         torch.save(model.state_dict(),
-                   os.path.join(WEIGHTS_DIR, "bwtreenet_v8_best.pt"))
+                   os.path.join(WEIGHTS_DIR, "bwtreenet_all_cities_best.pt"))
         print(f"  --> saved best model (val_iou={best_val_iou:.4f})")
     else:
         epochs_no_improve += 1
