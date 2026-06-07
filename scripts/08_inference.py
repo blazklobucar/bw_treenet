@@ -36,8 +36,8 @@ DEFAULT_OUTPUT_DIR = os.path.expanduser(
 DEFAULT_WEIGHTS    = os.path.expanduser(
     "~/bw_treenet/models/bwtreenet_all_cities_best.pt")
 
-PATCH_SIZE  = 2000   # pixels — must match training
-OVERLAP     = 400     # pixels overlap on each side
+PATCH_SIZE  = 1000   # pixels — must match training
+OVERLAP     = 200     # pixels overlap on each side
 THRESHOLD   = 0.5    # probability threshold for binary map
 N_CLASSES   = 2
 DEVICE      = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
