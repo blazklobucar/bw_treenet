@@ -25,7 +25,7 @@ from rasterio.transform import from_bounds
 from tqdm import tqdm
 
 # ── BWTreeNet import ────────────────────────────────────────────────────────
-sys.path.insert(0, os.path.expanduser("~/BWTreeNet/GuiTest"))
+sys.path.insert(0, os.path.expanduser("~/bw_treenet/BWTreeNet/GuiTest"))
 from model.BWTreeNet import BWTreeNet
 
 # ── defaults ────────────────────────────────────────────────────────────────

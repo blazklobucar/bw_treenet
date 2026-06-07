@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader, random_split, ConcatDataset
 from pathlib import Path
 
 # add BWTreeNet to path
-sys.path.insert(0, os.path.expanduser("~/BWTreeNet/GuiTest"))
+sys.path.insert(0, os.path.expanduser("~/bw_treenet/BWTreeNet/GuiTest"))
 
 from model.BWTreeNet import BWTreeNet
 from loss.lossfunction import IoULoss
