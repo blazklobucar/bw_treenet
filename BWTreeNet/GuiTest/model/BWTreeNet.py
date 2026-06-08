@@ -17,15 +17,15 @@ class ResDoubleConv(nn.Module):
             mid_channels = out_ch
         self.conv = nn.Sequential(
             nn.Conv2d(in_ch, mid_channels, 3, padding=1, bias=False),
-            nn.BatchNorm2d(mid_channels),
+            nn.GroupNorm(8, mid_channels),
             nn.ReLU(),
             nn.Conv2d(mid_channels, out_ch, 3, padding=1, bias=False),
-            nn.BatchNorm2d(out_ch),
+            nn.GroupNorm(8, out_ch),
             nn.ReLU()
         )
         self.channel_conv = nn.Sequential(
             nn.Conv2d(in_ch, out_ch, kernel_size=1, stride=1, bias=False),
-            nn.BatchNorm2d(out_ch),
+            nn.GroupNorm(8, out_ch),
             nn.ReLU()
         )
 
@@ -63,7 +63,7 @@ class Down_Att(nn.Module):
 
         self.singleconv = nn.Sequential(
             nn.Conv2d(in_channels, out_channels//2, 3, padding=1, bias=False),
-            nn.BatchNorm2d(out_channels//2),
+            nn.GroupNorm(8, out_channels//2),
             nn.ReLU()
         )
         self.doubleconv = ResDoubleConv(
@@ -125,7 +125,7 @@ class Up_Out(nn.Module):
                 scale_factor=2, mode='bilinear', align_corners=True)
             self.conv = nn.Sequential(
                 nn.Conv2d(in_channels, out_channels, 3, padding=1, bias=False),
-                nn.BatchNorm2d(out_channels),
+                nn.GroupNorm(8, out_channels),
                 nn.ReLU()
             )
 
@@ -135,7 +135,7 @@ class Up_Out(nn.Module):
             self.conv = nn.Sequential(
                 nn.Conv2d(in_channels+out_channels, out_channels,
                           3, padding=1, bias=False),
-                nn.BatchNorm2d(out_channels),
+                nn.GroupNorm(8, out_channels),
                 nn.ReLU()
             )
 
@@ -196,22 +196,22 @@ class SEBottleneck(nn.Module):
         self.bottleneck = nn.Sequential(
             nn.Conv2d(in_channels=in_places, out_channels=places,
                       kernel_size=1, stride=1, bias=False),
-            nn.BatchNorm2d(places),
+            nn.GroupNorm(8, places),
             nn.ReLU(inplace=True),
             nn.Conv2d(in_channels=places, out_channels=places,
                       kernel_size=3, stride=stride, padding=1, bias=False),
-            nn.BatchNorm2d(places),
+            nn.GroupNorm(8, places),
             nn.ReLU(inplace=True),
             nn.Conv2d(in_channels=places, out_channels=places *
                       self.expansion, kernel_size=1, stride=1, bias=False),
-            nn.BatchNorm2d(places * self.expansion),
+            nn.GroupNorm(8, places * self.expansion),
         )
         self.se = SELayer(places * self.expansion, 8)
         if self.downsampling:
             self.downsample = nn.Sequential(
                 nn.Conv2d(in_channels=in_places, out_channels=places * self.expansion, kernel_size=1, stride=stride,
                           bias=False),
-                nn.BatchNorm2d(places * self.expansion)
+                nn.GroupNorm(8, places * self.expansion)
             )
         self.relu = nn.ReLU(inplace=True)
 
@@ -274,15 +274,15 @@ class SharpConnect(nn.Module):
 
         self.ConvOri = nn.Sequential(
             nn.Conv2d(in_ch_ori, out_ch//2, 3, padding=1, bias=False),
-            nn.BatchNorm2d(out_ch//2),
+            nn.GroupNorm(8, out_ch//2),
             nn.ReLU(),
             nn.Conv2d(out_ch//2, out_ch, 3, padding=1, bias=False),
-            nn.BatchNorm2d(out_ch),
+            nn.GroupNorm(8, out_ch),
             nn.ReLU()
         )
         self.lyo = nn.LayerNorm([Co, Ho, Wo])
         self.lyf = nn.LayerNorm([Cf, Hf, Wf])
-        self.bn = nn.BatchNorm2d(out_ch)
+        self.bn = nn.GroupNorm(8, out_ch)
         self.relu = nn.ReLU()
 
     def forward(self, x_ori, x_ftr):
