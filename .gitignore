@@ -10,3 +10,6 @@ __pycache__/
 .ipynb_checkpoints/
 *.pyc
 
+BWTreeNet/BWTreeNet_weights.zip
+models/*.pt
+models/*.pth
