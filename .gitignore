@@ -13,3 +13,10 @@ __pycache__/
 BWTreeNet/BWTreeNet_weights.zip
 models/*.pt
 models/*.pth
+# large files
+BWTreeNet/BWTreeNet_weights.zip
+models/*.pt
+models/*.pth
+data/raw/
+data/processed/
+results/inference/
