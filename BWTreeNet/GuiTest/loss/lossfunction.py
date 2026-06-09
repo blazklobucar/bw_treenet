@@ -91,27 +91,28 @@ class IoULoss(nn.Module):
         return one_hot
 
     def loss_function(self):
-        """IoU loss computed on the tree class only (class index 1).
+        """Combined CE + IoU loss on tree class only.
 
-        Computing IoU over both classes and averaging is dominated by the
-        background class, which covers ~80-90% of pixels in urban imagery.
-        The model can achieve ~0.55 loss trivially by predicting background
-        everywhere. Restricting to the tree class forces the model to
-        optimise for what we actually care about.
+        Pure IoU loss can collapse to all-background with GroupNorm.
+        Cross-entropy provides stable gradients everywhere, IoU shapes
+        the spatial overlap. Weighted 0.5/0.5.
         """
+        import torch.nn.functional as F
         target = self.labels   # N x H x W  (integer: 0=background, 1=tree)
-        input  = self.logits   # N x C x H x W  (raw logits)
+        input  = self.logits   # N x C x H x W  (already softmaxed)
         N      = len(input)
 
-        pred          = input  # model already applies softmax internally   # N x C x H x W
-        target_onehot = self.to_one_hot(target, self.n_classes)  # N x C x H x W
+        # --- cross entropy loss (needs raw logits — use log of softmaxed output) ---
+        # input is already softmaxed so use NLLLoss with log
+        ce_loss = F.nll_loss(torch.log(input + 1e-16), target)
 
-        # --- tree class (index 1) only ---
-        pred_tree   = pred[:, 1, :, :].contiguous().view(N, -1)          # N x (H*W)
-        target_tree = target_onehot[:, 1, :, :].contiguous().view(N, -1) # N x (H*W)
+        # --- IoU loss on tree class only ---
+        target_onehot = self.to_one_hot(target, self.n_classes)
+        pred_tree   = input[:, 1, :, :].contiguous().view(N, -1)
+        target_tree = target_onehot[:, 1, :, :].contiguous().view(N, -1)
+        inter    = (pred_tree * target_tree).sum(1)
+        union    = (pred_tree + target_tree - pred_tree * target_tree).sum(1)
+        iou_tree = inter / (union + 1e-16)
+        iou_loss = 1 - iou_tree.mean()
 
-        inter    = (pred_tree * target_tree).sum(1)                       # N
-        union    = (pred_tree + target_tree - pred_tree * target_tree).sum(1)  # N
-
-        iou_tree = inter / (union + 1e-16)   # N
-        return 1 - iou_tree.mean()
+        return 0.5 * ce_loss + 0.5 * iou_loss

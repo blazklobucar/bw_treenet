@@ -31,9 +31,9 @@ LABELS_DIRS = [
     os.path.expanduser("~/bw_treenet/data/processed/sth/tiles_1960/labels/"),
 ]
 WEIGHTS_DIR = os.path.expanduser("~/bw_treenet/models/")
-LOG_FILE    = os.path.expanduser("~/bw_treenet/results/training_log_v9.csv")
+LOG_FILE    = os.path.expanduser("~/bw_treenet/results/training_log_v11.csv")
 PRETRAINED  = os.path.expanduser(
-    "~/bw_treenet/models/bwtreenet_v9_best.pt")  # resume from v3 best
+    "~/bw_treenet/models/NONE_train_from_scratch")  # resume from v3 best
 
 Path(WEIGHTS_DIR).mkdir(parents=True, exist_ok=True)
 Path(os.path.expanduser("~/bw_treenet/results")).mkdir(parents=True, exist_ok=True)
@@ -194,7 +194,7 @@ for epoch in range(1, EPOCHS + 1):
         best_val_iou      = avg_val_iou
         epochs_no_improve = 0
         torch.save(model.state_dict(),
-                   os.path.join(WEIGHTS_DIR, "bwtreenet_v9_best.pt"))
+                   os.path.join(WEIGHTS_DIR, "bwtreenet_v10b_best.pt"))
         print(f"  --> saved best model (val_iou={best_val_iou:.4f})")
     else:
         epochs_no_improve += 1

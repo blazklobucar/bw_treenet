@@ -49,7 +49,7 @@ def load_model(weights_path):
     model = BWTreeNet(n_class=N_CLASSES).to(DEVICE)
     state = torch.load(weights_path, map_location=DEVICE, weights_only=False)
     model.load_state_dict(state, strict=False)
-    model.train()
+    model.eval()
     print(f"Loaded weights from {weights_path}")
     return model
 

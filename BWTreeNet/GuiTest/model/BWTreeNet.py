@@ -1,5 +1,14 @@
 import torch
 import torch.nn as nn
+import sys
+import os
+import importlib.util
+_le_spec = importlib.util.spec_from_file_location(
+    "le_model",
+    os.path.join(os.path.dirname(__file__), "../../LuminanceEnhancer/model.py"))
+_le_module = importlib.util.module_from_spec(_le_spec)
+_le_spec.loader.exec_module(_le_module)
+enhance_net_nopool = _le_module.enhance_net_nopool
 import torch.nn.functional as F
 from torch.nn import Parameter, Softmax
 import numpy as np
@@ -337,7 +346,24 @@ class BWTreeNet(nn.Module):
 
         self.outc = OutConv(32, n_class)
 
+        # Luminance Enhancer — pretrained, frozen
+        self.le = enhance_net_nopool(scale_factor=1)
+        le_weights = os.path.join(os.path.dirname(__file__),
+                     '../../LuminanceEnhancer/weights/Epoch99.pth')
+        if os.path.exists(le_weights):
+            self.le.load_state_dict(torch.load(le_weights, map_location='cpu'))
+            for param in self.le.parameters():
+                param.requires_grad = False
+            print("Luminance Enhancer loaded and frozen")
+        else:
+            print("WARNING: LE weights not found, running without LE")
+
     def forward(self, x):
+        # Apply Luminance Enhancer on normalised [0,1] input
+        x_norm = x / 255.0
+        with torch.no_grad():
+            x_enhanced, _ = self.le(x_norm)
+        x = x_enhanced * 255.0
         x = 255-x
         x_11 = x
         x_a2 = self.avgpool2(x)
