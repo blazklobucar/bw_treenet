@@ -219,3 +219,15 @@ Labelling convention: separate shapefile per clip, merged canopy areas, trees on
 **NAISS Arrhenius:** GH200 96GB HBM3, ~5x faster than local GPU, 200 GPU-h/month  
 **Allocation:** NAISS 2026/4-1108, active until 2027-07-01  
 **GitHub:** github.com/blazklobucar/bw_treenet
+
+---
+
+## Validation Strategy (updated June 2026)
+
+**Change in v13:** Switching from individual crown polygons to merged canopy area validation.
+
+**901 Malmö 1959 polygons** → moving to training set for v13. Rasterize + tile, add to historical training data. Highest impact single data addition available.
+
+**New validation dataset** → `labels_malmo_1960.shp` from new digitising clip (merged canopy areas). Better matches model output style than individual crown polygons. Consider 4000×4000px clip for more validation coverage.
+
+**Expected effect:** Accuracy assessment IoU will increase — both from better training data and better-matched validation labels.
