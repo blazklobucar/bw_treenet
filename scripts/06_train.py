@@ -6,41 +6,55 @@ from torch.utils.data import DataLoader, random_split, ConcatDataset
 from pathlib import Path
 
 # add BWTreeNet to path
-sys.path.insert(0, os.path.expanduser("/nobackup/proj/disk/naiss2026-4-1108/personal/bklobucar/bw_treenet/BWTreeNet/GuiTest"))
+sys.path.insert(0, os.path.expanduser("~/bw_treenet/BWTreeNet/GuiTest"))
 
 from model.BWTreeNet import BWTreeNet
 from loss.lossfunction import IoULoss
 from util.Forest_dataset import Forest_dataset
-from util.augmentation import (RandomFlip, RandomBrightness, RandomNoise, RandomCLAHE,
+from util.augmentation import (RandomFlip, RandomBrightness, RandomNoise,
                                 RandomScratch, RandomBlur, RandomDistortion,
                                 RandomRoll)
 
 # ── config ─────────────────────────────────────────────────────────────────
 IMAGES_DIRS = [
-    os.path.expanduser("/nobackup/proj/disk/naiss2026-4-1108/personal/bklobucar/bw_treenet/data/processed/malmo/tiles/images/"),
-    os.path.expanduser("/nobackup/proj/disk/naiss2026-4-1108/personal/bklobucar/bw_treenet/data/processed/gtb/tiles/images/"),
-    os.path.expanduser("/nobackup/proj/disk/naiss2026-4-1108/personal/bklobucar/bw_treenet/data/processed/sth/tiles/images/"),
-    os.path.expanduser("/nobackup/proj/disk/naiss2026-4-1108/personal/bklobucar/bw_treenet/data/processed/gtb/tiles_1960/images/"),
-    os.path.expanduser("/nobackup/proj/disk/naiss2026-4-1108/personal/bklobucar/bw_treenet/data/processed/sth/tiles_1960/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed/sth/tiles/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles_1960/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed/sth/tiles_1960/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles_1959/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles_1960/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles_1970/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles_1990/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles_1970/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles_1990/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed/sth/tiles_1990/images/"),
 ]
 LABELS_DIRS = [
-    os.path.expanduser("/nobackup/proj/disk/naiss2026-4-1108/personal/bklobucar/bw_treenet/data/processed/malmo/tiles/labels/"),
-    os.path.expanduser("/nobackup/proj/disk/naiss2026-4-1108/personal/bklobucar/bw_treenet/data/processed/gtb/tiles/labels/"),
-    os.path.expanduser("/nobackup/proj/disk/naiss2026-4-1108/personal/bklobucar/bw_treenet/data/processed/sth/tiles/labels/"),
-    os.path.expanduser("/nobackup/proj/disk/naiss2026-4-1108/personal/bklobucar/bw_treenet/data/processed/gtb/tiles_1960/labels/"),
-    os.path.expanduser("/nobackup/proj/disk/naiss2026-4-1108/personal/bklobucar/bw_treenet/data/processed/sth/tiles_1960/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed/sth/tiles/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles_1960/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed/sth/tiles_1960/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles_1959/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles_1960/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles_1970/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles_1990/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles_1970/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles_1990/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed/sth/tiles_1990/labels/"),
 ]
-WEIGHTS_DIR = os.path.expanduser("/nobackup/proj/disk/naiss2026-4-1108/personal/bklobucar/bw_treenet/models/")
-LOG_FILE    = os.path.expanduser("/nobackup/proj/disk/naiss2026-4-1108/personal/bklobucar/bw_treenet/results/training_log_v12b.csv")
+WEIGHTS_DIR = os.path.expanduser("~/bw_treenet/models/")
+LOG_FILE    = os.path.expanduser("~/bw_treenet/results/training_log_v13.csv")
 PRETRAINED  = os.path.expanduser(
-    "/nobackup/proj/disk/naiss2026-4-1108/personal/bklobucar/bw_treenet/models/bwtreenet_v12_best.pt")  # resume from v3 best
+    "~/bw_treenet/models/NONE_train_from_scratch")  # resume from v3 best
 
 Path(WEIGHTS_DIR).mkdir(parents=True, exist_ok=True)
-Path(os.path.expanduser("/nobackup/proj/disk/naiss2026-4-1108/personal/bklobucar/bw_treenet/results")).mkdir(parents=True, exist_ok=True)
+Path(os.path.expanduser("~/bw_treenet/results")).mkdir(parents=True, exist_ok=True)
 
-EPOCHS      = 40           # cap at 40; ReduceLROnPlateau will manage descent
+EPOCHS      = 80           # cap at 40; ReduceLROnPlateau will manage descent
 BATCH_SIZE  = 16
-LR          = 0.00003125       # 10x lower than v3 — fine-tuning from checkpoint
+LR          = 0.001       # 10x lower than v3 — fine-tuning from checkpoint
 VAL_SPLIT   = 0.2
 N_CLASSES   = 2
 DEVICE      = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -66,7 +80,6 @@ augmentation_methods = [
     RandomDistortion(prob=0.3),
     RandomScratch(prob=0.3),
     RandomRoll(prob=0.3),
-    RandomCLAHE(clip_limit=2.0, prob=0.5),
 ]
 
 # ── dataset ────────────────────────────────────────────────────────────────
@@ -120,7 +133,7 @@ scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
     factor=SCHED_FACTOR,
     patience=SCHED_PATIENCE,
     min_lr=SCHED_MIN_LR,
-    
+    verbose=True
 )
 
 # ── logging ────────────────────────────────────────────────────────────────
@@ -195,7 +208,7 @@ for epoch in range(1, EPOCHS + 1):
         best_val_iou      = avg_val_iou
         epochs_no_improve = 0
         torch.save(model.state_dict(),
-                   os.path.join(WEIGHTS_DIR, "bwtreenet_v12b_best.pt"))
+                   os.path.join(WEIGHTS_DIR, "bwtreenet_v10b_best.pt"))
         print(f"  --> saved best model (val_iou={best_val_iou:.4f})")
     else:
         epochs_no_improve += 1
