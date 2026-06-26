@@ -22,6 +22,13 @@ IMAGES_DIRS = [
     os.path.expanduser("~/bw_treenet/data/processed/sth/tiles/images/"),
     os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles_1960/images/"),
     os.path.expanduser("~/bw_treenet/data/processed/sth/tiles_1960/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles_1959/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles_1960/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles_1970/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles_1990/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles_1970/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles_1990/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed/sth/tiles_1990/images/"),
 ]
 LABELS_DIRS = [
     os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles/labels/"),
@@ -29,17 +36,24 @@ LABELS_DIRS = [
     os.path.expanduser("~/bw_treenet/data/processed/sth/tiles/labels/"),
     os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles_1960/labels/"),
     os.path.expanduser("~/bw_treenet/data/processed/sth/tiles_1960/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles_1959/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles_1960/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles_1970/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles_1990/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles_1970/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles_1990/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed/sth/tiles_1990/labels/"),
 ]
 WEIGHTS_DIR = os.path.expanduser("~/bw_treenet/models/")
-LOG_FILE    = os.path.expanduser("~/bw_treenet/results/training_log_v11.csv")
+LOG_FILE    = os.path.expanduser("~/bw_treenet/results/training_log_v13.csv")
 PRETRAINED  = os.path.expanduser(
     "~/bw_treenet/models/NONE_train_from_scratch")  # resume from v3 best
 
 Path(WEIGHTS_DIR).mkdir(parents=True, exist_ok=True)
 Path(os.path.expanduser("~/bw_treenet/results")).mkdir(parents=True, exist_ok=True)
 
-EPOCHS      = 60           # cap at 40; ReduceLROnPlateau will manage descent
-BATCH_SIZE  = 2
+EPOCHS      = 80           # cap at 40; ReduceLROnPlateau will manage descent
+BATCH_SIZE  = 16
 LR          = 0.001       # 10x lower than v3 — fine-tuning from checkpoint
 VAL_SPLIT   = 0.2
 N_CLASSES   = 2
