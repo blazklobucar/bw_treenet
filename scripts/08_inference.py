@@ -25,16 +25,16 @@ from rasterio.transform import from_bounds
 from tqdm import tqdm
 
 # ── BWTreeNet import ────────────────────────────────────────────────────────
-sys.path.insert(0, os.path.expanduser("~/bw_treenet/BWTreeNet/GuiTest"))
+sys.path.insert(0, os.path.expanduser("/nobackup/proj/disk/naiss2026-4-1108/personal/bklobucar/bw_treenet/BWTreeNet/GuiTest"))
 from model.BWTreeNet import BWTreeNet
 
 # ── defaults ────────────────────────────────────────────────────────────────
 DEFAULT_INPUT_DIR  = os.path.expanduser(
-    "~/bw_treenet/data/raw/malmo/1960_OF_gray_mmo/")
+    "/nobackup/proj/disk/naiss2026-4-1108/personal/bklobucar/bw_treenet/data/raw/malmo/1960_OF_gray_mmo/")
 DEFAULT_OUTPUT_DIR = os.path.expanduser(
-    "~/bw_treenet/results/inference/malmo_1960s/")
+    "/nobackup/proj/disk/naiss2026-4-1108/personal/bklobucar/bw_treenet/results/inference/malmo_1960s_v12/")
 DEFAULT_WEIGHTS    = os.path.expanduser(
-    "~/bw_treenet/models/bwtreenet_all_cities_best.pt")
+    "/nobackup/proj/disk/naiss2026-4-1108/personal/bklobucar/bw_treenet/models/bwtreenet_v12_best.pt")
 
 PATCH_SIZE  = 1000   # pixels — must match training
 OVERLAP     = 200     # pixels overlap on each side
@@ -56,7 +56,7 @@ def load_model(weights_path):
 
 def normalise(arr):
     """Normalise uint8 image to [0, 1] float32."""
-    return arr.astype(np.float32) / 255.0
+    return arr.astype(np.float32)  # keep raw 0-255 range for LE module
 
 
 def pad_to_multiple(arr, patch_size, overlap):
