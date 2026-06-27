@@ -266,3 +266,38 @@ Labelling convention: separate shapefile per clip, merged canopy areas, trees on
 - v13 vs v12: adding historical labels improved modern val IoU (+0.03) but slightly reduced historical accuracy — suggests label style mismatch between modern training and historical validation
 - v14: class weighting improves visual realism but hurts quantitative accuracy
 - v15: Fourier texture channel is a negative result — architecture sufficient without explicit texture features
+
+---
+
+## v14 and v15 Results (June 2026)
+
+### v14 — Class weighting (background:tree = 1:3)
+- Best val IoU (modern): 0.6769
+- Accuracy assessment STH 1970: IoU 0.6396, F1 0.7802 (threshold 0.5)
+- Tree cover estimates more realistic than v13 (14% vs under-prediction)
+- Class weighting hurt modern val IoU but improved inference realism
+- Conclusion: weight ratio 1:3 too aggressive
+
+### v15 — Fourier texture channel (2-channel BWTreeNet)
+- Architecture change: BWTreeNet input 1→2 channels (grayscale + isotropy map)
+- Best val IoU (modern): 0.6390
+- Accuracy assessment STH 1970: IoU 0.6535, F1 0.7904 (threshold 0.7)
+- Best precision of all versions (0.7666) but lower recall
+- Texture channel did not improve overall accuracy vs v12
+- Conclusion: explicit texture features not beneficial over base architecture with good training data
+
+### Model ranking (STH 1970 validation, merged canopy labels)
+| Model | IoU | F1 | Best threshold |
+|---|---|---|---|
+| v12 | 0.6567 | 0.7928 | 0.4 |
+| v15 | 0.6535 | 0.7904 | 0.7 |
+| v13 | 0.6494 | 0.7874 | 0.3 |
+| v14 | 0.6396 | 0.7802 | 0.5 |
+
+**Production model: v12** (best overall accuracy, balanced precision/recall)
+**v13** has highest modern val IoU (0.7031) and is useful as comparison for paper
+
+### For paper methods section
+- v13 vs v12: adding historical labels improved modern val IoU (+0.03) but slightly reduced historical accuracy — suggests label style mismatch between modern training and historical validation
+- v14: class weighting improves visual realism but hurts quantitative accuracy
+- v15: Fourier texture channel is a negative result — architecture sufficient without explicit texture features
