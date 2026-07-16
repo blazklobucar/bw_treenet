@@ -17,35 +17,35 @@ from util.augmentation import (RandomFlip, RandomBrightness, RandomNoise,
 
 # ── config ─────────────────────────────────────────────────────────────────
 IMAGES_DIRS = [
-    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles/images/"),
-    os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles/images/"),
-    os.path.expanduser("~/bw_treenet/data/processed/sth/tiles/images/"),
-    os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles_1960/images/"),
-    os.path.expanduser("~/bw_treenet/data/processed/sth/tiles_1960/images/"),
-    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles_1959/images/"),
-    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles_1960/images/"),
-    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles_1970/images/"),
-    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles_1990/images/"),
-    os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles_1970/images/"),
-    os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles_1990/images/"),
-    os.path.expanduser("~/bw_treenet/data/processed/sth/tiles_1990/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed_512/malmo/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed_512/gtb/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed_512/sth/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed_512/gtb_1960/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed_512/sth_1960/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed_512/malmo_1959/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed_512/malmo_1960/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed_512/malmo_1970/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed_512/malmo_1990/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed_512/gtb_1970/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed_512/gtb_1990/images/"),
+    os.path.expanduser("~/bw_treenet/data/processed_512/sth_1990/images/"),
 ]
 LABELS_DIRS = [
-    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles/labels/"),
-    os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles/labels/"),
-    os.path.expanduser("~/bw_treenet/data/processed/sth/tiles/labels/"),
-    os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles_1960/labels/"),
-    os.path.expanduser("~/bw_treenet/data/processed/sth/tiles_1960/labels/"),
-    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles_1959/labels/"),
-    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles_1960/labels/"),
-    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles_1970/labels/"),
-    os.path.expanduser("~/bw_treenet/data/processed/malmo/tiles_1990/labels/"),
-    os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles_1970/labels/"),
-    os.path.expanduser("~/bw_treenet/data/processed/gtb/tiles_1990/labels/"),
-    os.path.expanduser("~/bw_treenet/data/processed/sth/tiles_1990/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed_512/malmo/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed_512/gtb/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed_512/sth/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed_512/gtb_1960/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed_512/sth_1960/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed_512/malmo_1959/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed_512/malmo_1960/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed_512/malmo_1970/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed_512/malmo_1990/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed_512/gtb_1970/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed_512/gtb_1990/labels/"),
+    os.path.expanduser("~/bw_treenet/data/processed_512/sth_1990/labels/"),
 ]
 WEIGHTS_DIR = os.path.expanduser("~/bw_treenet/models/")
-LOG_FILE    = os.path.expanduser("~/bw_treenet/results/training_log_v13.csv")
+LOG_FILE    = os.path.expanduser("~/bw_treenet/results/training_log_v16.csv")
 PRETRAINED  = os.path.expanduser(
     "~/bw_treenet/models/NONE_train_from_scratch")  # resume from v3 best
 
@@ -92,8 +92,8 @@ for img_dir, lbl_dir in zip(IMAGES_DIRS, LABELS_DIRS):
         label_seffix=".tif",
         have_label=True,
         class_num=N_CLASSES,
-        input_h=1000,
-        input_w=1000,
+        input_h=512,
+        input_w=512,
         transform=augmentation_methods
     )
     datasets.append(ds)
