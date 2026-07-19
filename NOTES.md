@@ -341,3 +341,60 @@ Modern val IoU is a poor proxy for historical inference quality. The domain gap 
 - Target: 500-1000 additional era-matched polygons per city per decade
 - Expected impact: push historical IoU from 0.657 toward 0.75+
 - Clips for labelling being prepared (see below)
+
+---
+
+## Publishable Findings
+
+*Findings that stand on their own as methods contributions or reportable results.*
+*Last updated: 2026-07-19.*
+
+### 1. Modern validation IoU is a poor proxy for historical inference quality
+Across v1–v17, pushing modern-imagery validation IoU higher did not track historical
+performance — and at the extreme, inverted. v16/v17 (512px tiles + aggressive positive-
+sample filtering) reached modern val IoU 0.745–0.763 while historical IoU *dropped* to
+0.585–0.620. v12 remains the production model on historical accuracy (IoU 0.657, F1 0.793
+on STH 1970) despite a lower modern val IoU (0.674). Takeaway for the field: report
+era-matched historical validation, not modern-imagery validation, when the deployment
+target is archival photography.
+
+### 2. Era-matched labels are the primary bottleneck, not architecture
+Architecture/training changes (GroupNorm, combined CE+IoU loss, CLAHE, Fourier texture
+channel, class weighting) produced small or inconsistent historical gains. The domain gap
+between modern training imagery and 1960s–70s panchromatic film is structural. Consistent
+with independent input from BWTreeNet author Yuanyuan Gui (data quality > architecture,
+positive-sample proportion is the key variable).
+
+### 3. Unmasked open water dominates apparent error on coastal historical tiles
+Scoring v12 on the fully held-out Malmö 1970 set (unseen city AND era; not used in v12
+training — 1970s tiles first entered at v13):
+
+| Metric (threshold 0.5) | Sea included | Sea masked (land only) |
+|---|---|---|
+| IoU        | 0.444 | **0.568** |
+| Precision  | 0.533 | **0.723** |
+| Recall     | 0.726 | 0.727 |
+| False positives | 501,017 | 219,583 |
+
+**56% of all false positives were open water.** Choppy sea in panchromatic is dark and
+high-texture, so it mimics canopy; a modern hydrography mask (Lantmäteriet Fastighetskartan
+Hydrografi, VATTEN polygons, rasterised to the tile grid at 0.5 m / EPSG:3006) removes it
+at inference with no retraining. Once water is masked, precision ≈ recall (0.723 vs 0.727):
+v12 is balanced on land and does NOT systematically over-predict canopy. Methods note for
+anyone scoring segmentation on archival coastal imagery: mask water before computing
+precision, or it will read as a model defect it isn't.
+
+### 4. Held-out cross-city-and-era generalisation
+Sea-masked land IoU of 0.568 on Malmö 1970 is a floor, not a typical case: Malmö 1970 is
+unseen on both city and era axes (STH, which appears partly in training, scores 0.657).
+Respectable transfer for archival panchromatic imagery, and it establishes a clean
+generalisation baseline against which the planned v18 (historical-degradation augmentation)
+can be measured.
+
+### Open / to verify
+- 0.568 is still a lower bound: the modern shoreline does not perfectly match the 1960s–70s
+  coastline (reclaimed land, harbour expansion), so a few land/sea pixels are misassigned.
+- Whether historical-degradation augmentation (v18) lifts land IoU from ~0.57 toward 0.85
+  remains to be tested — this is the main open experiment.
+- Threshold lever now evidenced: masked precision climbs 0.66→0.78 across thresholds
+  0.3→0.7; 0.5 is the balanced point, 0.6 gives precision 0.749 at recall 0.681.
