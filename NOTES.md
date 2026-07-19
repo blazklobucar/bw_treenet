@@ -301,3 +301,43 @@ Labelling convention: separate shapefile per clip, merged canopy areas, trees on
 - v13 vs v12: adding historical labels improved modern val IoU (+0.03) but slightly reduced historical accuracy — suggests label style mismatch between modern training and historical validation
 - v14: class weighting improves visual realism but hurts quantitative accuracy
 - v15: Fourier texture channel is a negative result — architecture sufficient without explicit texture features
+
+---
+
+## v16 and v17 Results (July 2026)
+
+### v16 — 512×512 tiles with positive sample filtering (min 10% tree cover)
+- Retiled all training data from 1000×1000 to 512×512px
+- Filtered tiles with <10% tree cover — kept 13,404 of ~53,000 possible tiles
+- Best val IoU (modern): 0.7450 — new record at the time
+- Historical IoU STH 1970: 0.585 — worst historical performance
+- Conclusion: 10% threshold too aggressive, excluded most historical tiles (gtb_1970: 1 tile, gtb_1990: 0 tiles)
+
+### v17 — 512×512 tiles, 3% threshold for historical tiles
+- Same as v16 but historical tiles use 3% minimum cover
+- Historical tile count increased (gtb_1960: 131→ kept more, sth_1960: 82 tiles)
+- Best val IoU (modern): 0.7631 — new overall record
+- Historical IoU STH 1970: 0.620
+- Malmö 1960s inference: massively over-predicts (616_37_50_1959: 81.7% tree cover vs v12's 16.3%)
+- Conclusion: positive sample filtering improves modern performance but hurts historical domain generalisation
+
+### Key finding
+Modern val IoU is a poor proxy for historical inference quality. The domain gap between modern training imagery and historical panchromatic photography is structural and persistent. Era-matched labels remain the primary bottleneck for historical accuracy improvement.
+
+### Model ranking (definitive)
+| Model | Modern val IoU | Historical IoU (STH 1970) | Historical usability |
+|---|---|---|---|
+| v12 | 0.674 | 0.657 | ✅ Production model |
+| v13 | 0.703 | 0.649 | ✅ Good |
+| v15 | 0.639 | 0.654 | ✅ Good |
+| v14 | 0.677 | 0.640 | ✅ Acceptable |
+| v17 | 0.763 | 0.620 | ❌ Over-predicts historically |
+| v16 | 0.745 | 0.585 | ❌ Over-predicts historically |
+
+**Production model: v12** — best historical accuracy, balanced precision/recall
+
+### Next steps
+- Label additional historical clips across all three cities and multiple decades
+- Target: 500-1000 additional era-matched polygons per city per decade
+- Expected impact: push historical IoU from 0.657 toward 0.75+
+- Clips for labelling being prepared (see below)
