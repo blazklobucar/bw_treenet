@@ -398,3 +398,61 @@ can be measured.
   remains to be tested — this is the main open experiment.
 - Threshold lever now evidenced: masked precision climbs 0.66→0.78 across thresholds
   0.3→0.7; 0.5 is the balanced point, 0.6 gives precision 0.749 at recall 0.681.
+
+### 5. Luminance Enhancer and historical-degradation augmentation: a 2×2 ablation (v18)
+
+Four controlled runs, identical in every respect except the two factors under test
+(BWTreeNet's Luminance Enhancer on/off × synthetic historical-degradation
+augmentation of modern tiles on/off). All warm-started from v12, trained at
+1000 px / batch 8, with Malmö 1970 held out of training. Scored with taper-blended
+sliding-window inference, masked to SCB tätort (2023) urban extent, using the
+metric code from `09_accuracy_assessment.py`.
+
+**IoU at threshold 0.5, on two independent benchmarks:**
+
+| Run | Lum. Enhancer | Degradation aug | Malmö 1970 | STH 1970 |
+|---|---|---|---|---|
+| v12 (production) | on | no | 0.5675 | 0.6507 |
+| v18a | on | no | 0.5640 | 0.6415 |
+| v18b | **off** | no | 0.5406 | (not scored) |
+| v18c | **off** | **yes** | 0.5650 | 0.6396 |
+| v18d | on | **yes** | **0.5730** | **0.6522** |
+
+**Both factors contribute, and they overlap.** Holding degradation constant,
+keeping the Luminance Enhancer is worth +0.023 IoU (v18b→v18a) and +0.008
+(v18c→v18d). Holding the LE constant, degradation augmentation is worth +0.024
+(v18b→v18c) and +0.009 (v18a→v18d). Each effect is large when the other is absent
+and small when the other is present, i.e. the two are partly doing the same job
+(normalising tonal/contrast variation). Additivity would have predicted ~0.588 on
+Malmö; the observed 0.573 is below that.
+
+**The Luminance Enhancer should NOT be dropped for this imagery.** The BWTreeNet
+author suggested it is optional and can be replaced by histogram equalisation /
+contrast stretching. On Swedish historical panchromatic imagery that does not
+hold: removing it cost IoU in both configurations tested. This is a clean negative
+result on otherwise sound advice, and worth reporting back.
+
+**Net gain is real but very small.** v18d is the only variant to beat v12 on both
+benchmarks, but by +0.0055 (Malmö) and +0.0015 (STH) — a fraction of a percent,
+within single-clip noise. v18d is promoted as not-worse and marginally better, but
+it will not visibly change canopy maps.
+
+**A precision advantage seen on one city did not generalise.** On Malmö 1970,
+v18d showed markedly higher precision than v12 (0.763 vs 0.716, 26% fewer false
+positives). On STH 1970 the pattern inverted (0.767 vs 0.784, with higher recall
+instead). Single-city gains in the precision/recall balance should not be assumed
+to transfer — this is the reason the second benchmark was run.
+
+**Principal conclusion: the augmentation and architecture levers are exhausted.**
+Four controlled variants across two benchmarks yielded at most +0.3% IoU. Combined
+with the earlier negative results (Fourier texture channel v15, class weighting
+v14, 512 px retiling v16/v17), the remaining error is data-limited rather than
+method-limited. The training set is 4,461 modern tiles against 111 era-matched
+historical tiles (1959: 9, 1960: 81, 1970: 18, 1990: 3), and mean canopy fraction
+is 0.311 in modern tiles versus 0.05–0.07 in historical ones. Closing the gap
+requires more era-matched historical labels, concentrated in the near-empty eras;
+no augmentation strategy tested substitutes for them.
+
+**Method note — scoring reproducibility.** v12 scores 0.6507 on the STH 1970 clip
+under this pipeline, reproducing the previously recorded 0.657 and confirming the
+scoring path is consistent with earlier assessments.
