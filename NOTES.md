@@ -456,3 +456,50 @@ no augmentation strategy tested substitutes for them.
 **Method note — scoring reproducibility.** v12 scores 0.6507 on the STH 1970 clip
 under this pipeline, reproducing the previously recorded 0.657 and confirming the
 scoring path is consistent with earlier assessments.
+
+---
+
+## Labelling round — September 2026
+
+### Batch 1 (Malmö 1960s, 20 clips) — mostly a miss
+Auto-selected on land coverage + v12 canopy hint. Only 9 of 20 clips proved worth
+labelling (123 polygons total); 11 were shoreline, seaweed or bare field. Mean
+canopy fraction of the resulting tiles was 0.058 — in line with existing historical
+tiles (0.05–0.07), so the batch added volume but did not shift the positive-sample
+balance. Historical set 111 → 120 tiles, too small a step to measure.
+
+**Lesson:** selecting clips on "is it land" wastes labelling hours. Selection must
+target canopy density directly.
+
+### Batch 2 (60 clips, 6 city-era combinations) — canopy-targeted
+Rewrote clip selection to rank candidate windows with the production model and keep
+only those predicted at 10–60% canopy, filtered to inside SCB tätort, spread by
+farthest-point sampling across cities and eras (Malmö/GTB/STH × 1960s/1970s,
+10 clips each). Mean canopy hint 28.2% (range 10.6–59.3), roughly 5× batch 1.
+
+Expected to take the historical set from 111 to ~165 tiles at substantially better
+canopy balance — the first increment large enough to measure a label-volume effect.
+
+### Water false positives persist inside the urban boundary
+Roughly 15% of model-selected Malmö clips (3 of 20 checked) were open water despite
+the tätort filter. **The tätort boundary is a settlement definition, not a land/water
+boundary** — harbours, canals and inner-city waterfront fall inside it by
+construction. Confirms and sharpens the earlier water-masking finding: urban-extent
+masking removes open sea but does not substitute for a hydrography mask at the
+waterfront. For production inference on port cities, both masks are needed.
+
+### Data integrity
+3 of 17 GTB 1960s frames are unreadable (`TIFFReadEncodedTile() failed`,
+"Using code not yet in table") — likely an unsupported TIFF codec or truncation.
+Affects `639_32_05_1963.tif`, `639_32_50_1960.tif`, `gtb_clip.tif`. Needs resolving
+before full-city inference; note `gtb_clip.tif` appears to be a validation extent.
+
+### Imagery coverage confirmed
+Full three-city × four-era coverage exists locally (~12.4 GB for all nine historical
+city-era combinations; modern imagery ~280 GB). Gothenburg 1990s is RGB rather than
+grayscale and needs conversion before inference.
+
+### Next
+Label batch 2, rasterise to training pairs, then retrain at two label volumes
+(full and half) so the gain-per-tile slope can be estimated rather than a single
+point — this is the evidence the methods paper needs for the data-limited claim.
