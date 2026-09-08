@@ -503,3 +503,45 @@ grayscale and needs conversion before inference.
 Label batch 2, rasterise to training pairs, then retrain at two label volumes
 (full and half) so the gain-per-tile slope can be estimated rather than a single
 point — this is the evidence the methods paper needs for the data-limited claim.
+
+### Batch 2 rasterised — 40 new tiles, historical set 111 → 151
+
+Three label sets digitised and rasterised (374 polygons total):
+
+| Set | Tiles | Mean canopy fraction |
+|---|---|---|
+| Malmö 1960s | 20 (10 background-only) | 0.029 |
+| Gothenburg 1960s | 10 | 0.349 |
+| Stockholm 1960s | 10 | 0.346 |
+| **Total** | **40** | 0.189 (median 0.102) |
+
+The canopy-targeted clip selection worked: GTB and STH tiles average ~0.35 canopy
+against 0.05–0.07 in the existing historical set, i.e. close to the ~0.30 positive
+proportion the BWTreeNet author recommended. Batch 1 (selection on land coverage
+only) averaged 0.058 by comparison.
+
+**Malmö dilutes the batch.** Its mean is 0.029 with half the tiles background-only
+(verified-empty coastal clips, retained deliberately as negative signal against the
+model's known water/canopy confusion). If the retrain underperforms, this dilution
+is the first thing to test by excluding them.
+
+**Forest-dominant tiles — flagged for possible exclusion.** Several clips landed on
+near-continuous woodland rather than urban canopy, and were labelled almost
+edge-to-edge as a result:
+
+- `sth/tiles_1960new/657_66_05_1958_clip_00000_00000.tif` — 94.0% canopy, 1 polygon
+- `sth/tiles_1960new/657_68_50_1958_clip_02560_07680.tif` — 68.8%, 9 polygons
+- `gtb/tiles_1960new/639_32_00_1963_clip_02048_06656.tif` — 67.3%, 4 polygons
+- `gtb/tiles_1960new/639_32_00_1963_clip_07168_01536.tif` — 53.2%, 10 polygons
+
+These labels are correct — the areas genuinely are forest. But the project's target
+is *urban* canopy (street trees, gardens, parks, fragmented cover in built-up
+areas), and large contiguous dark-textured regions are the easy case. Risk: they
+may raise IoU by supplying large easy positives without improving performance on
+built-up areas, and they resemble the pattern behind the model's over-prediction on
+water and dark fields. Consequence of the 10–60% canopy selection window, which at
+its upper end selects woodland in 1950s–60s frames.
+
+Retraining proceeds with all 40 tiles included; these four are recorded so the run
+can be repeated without them if the result is ambiguous. Future batches should use
+a narrower window (~15–40%) to bias toward mixed urban scenes.
