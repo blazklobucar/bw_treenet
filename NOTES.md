@@ -545,3 +545,62 @@ its upper end selects woodland in 1950s–60s frames.
 Retraining proceeds with all 40 tiles included; these four are recorded so the run
 can be repeated without them if the result is ambiguous. Future batches should use
 a narrower window (~15–40%) to bias toward mixed urban scenes.
+
+### 6. Era-matched labels measurably improve historical accuracy (v19)
+
+The v18 ablation established that architecture and augmentation changes had
+plateaued, and inferred — from the 4,461 modern vs 111 historical tile imbalance —
+that the remaining error was data-limited. v19 tests that inference directly.
+
+**Design.** Identical to v18d in every respect (BWTreeNet with Luminance Enhancer
+retained, historical-degradation augmentation on modern tiles, warm-started from
+v12, 1000 px / batch 8, Malmö 1970 held out). The single change: 40 newly digitised
+era-matched historical tiles added to training, taking the historical set from
+111 to 151.
+
+**Result — v19 leads on both benchmarks at every threshold:**
+
+| Threshold 0.5 | Malmö 1970 IoU | STH 1970 IoU |
+|---|---|---|
+| v12 (previous production) | 0.5675 | 0.6507 |
+| v18d (best ablation variant) | 0.5730 | 0.6522 |
+| **v19 (+40 labels)** | **0.5804** | **0.6545** |
+
+At threshold 0.6 the margin widens to +0.014 (Malmö) and +0.019 (STH) over v12 —
+the largest gains observed in the project.
+
+**Labels outperform every method change tested.** Four controlled architecture and
+augmentation variants, scored on two benchmarks, yielded at most +0.0055 IoU over
+v12. Forty labelled tiles yielded +0.0130 on Malmö with the recipe otherwise
+unchanged. This converts the data-limited claim from an inference drawn from
+absence of improvement into a direct measurement.
+
+**But the cost per point is high.** 40 tiles bought roughly +0.013 IoU. Naive
+linear extrapolation from 0.58 toward 0.80 implies on the order of several hundred
+additional era-matched tiles, and returns will very likely diminish before that.
+The honest reading is not that labelling solves the domain gap, but that it is the
+only lever found to move it measurably, at a substantial hourly cost.
+
+**Character shift toward recall.** v19 recovers more canopy (recall 0.747 vs v18d's
+0.697 on Malmö at threshold 0.5) at some cost to precision, consistent with having
+trained on canopy-rich tiles (the new set averages 0.189 canopy fraction against
+0.05–0.07 in the pre-existing historical tiles). For production mapping, threshold
+0.6 gives v19 its best IoU while restoring precision to ~0.75.
+
+**Caveats attached to this measurement.** Two properties of the new tiles mean the
+clean version of this experiment is still outstanding:
+- 40 of them are 512 px clips reflect-padded to 1000 px, so roughly 74% of each
+  tile's area is mirrored duplicate content. Padding was necessary because
+  `Forest_dataset` returns tiles at native size (its resize calls are commented
+  out) and BWTreeNet's LayerNorm is hardcoded to 1000 px input.
+- Four are forest-dominant rather than urban (labelled edge-to-edge), a consequence
+  of the 10–60% canopy selection window; subsequent batches use 15–45%.
+Subsequent labelling is done at native 1000 px, which removes the padding concern
+for future increments.
+
+**Note on the v18a checkpoint.** `bwtreenet_v18a_best.pt` was overwritten by a
+1-epoch smoke run (the smoke test defaults to `--tag v18a`). v18a rows in any
+scoring table produced after that point are invalid — the figures recorded in
+finding 5 come from the original run and remain correct.
+
+**v19 is promoted to production.**
