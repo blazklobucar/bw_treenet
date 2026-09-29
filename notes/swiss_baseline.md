@@ -83,3 +83,5 @@ Sanity: v19 reproduces Malmo 0.580 @0.5 / 0.569 @0.6. Equalisation from upstream
   reflect selection + leakage.
 - Fine-tuning design: validation must be neither benchmark; exclude same-era training tiles that
   overlap either benchmark.
+- v12 trained FROM SCRATCH (slurm_v12_20565/26068: "no pretrained weights found"). Lineage: v12 scratch -> v18a-d, v19, v20 warm-start from v12.
+- Only malmo/tiles_1970new/616_37_00_1973_clip_03000_03000.tif overlaps the Malmo benchmark (same era). Exclude in new runs.
