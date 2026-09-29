@@ -95,7 +95,7 @@ def swiss_equalise(p):
     p = p.copy()
     p[p > 255] = 255
     p = np.nan_to_num(p, nan=0)
-    p = EqualizeHist(p.astype(np.uint8), bins=255).operation()
+    p = EqualizeHist(np.rint(p).astype(np.int64), bins=255).operation()
     return np.asarray(p, dtype=np.float64)
 
 
