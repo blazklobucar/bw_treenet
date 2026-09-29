@@ -67,3 +67,19 @@ Sanity: v19 reproduces Malmo 0.580 @0.5 / 0.569 @0.6. Equalisation from upstream
 - Fine-tune from Swiss 1946 weights (upstream BatchNorm architecture) on Swedish labels;
   2 seeds each scratch vs fine-tuned (variance estimate); likely new production candidate
 - Paper 1 cannot claim v19 beats the published model; reframe around transfer + adaptation
+
+## Leakage and selection check (29 Sep 2026)
+- ALL of v18a-d, v19, v20 warm-started from v12 (slurm logs: "[model] warm-started from v12";
+  run scripts have no --from-scratch). Earlier notes saying "random initialisation" are WRONG.
+- 07_train_v18.py uses malmo/tiles_1970 (the Malmo benchmark) as val_loader: it drove LR schedule,
+  early stopping and best-checkpoint choice. Malmo 1970 is a validation set, not a test set.
+- Malmo benchmark: 9 tiles overlap by 50% (offsets are pixels); union = 1.0 km2, 2000x2000 px.
+  Pooled metrics count central pixels up to 4x (same for all models). Score as one mosaic in future.
+- Malmo benchmark overlap with training: 25% malmo/tiles_1970new (SAME ERA), 75% malmo/tiles (modern),
+  3% tiles_1959.
+- STH clip (1.0 km2): 0% same-era overlap; 100% overlap with sth/tiles (modern) and sth/tiles_1960.
+  Not used for model selection. -> cleanest test available.
+- On STH: v19 0.659 vs Swiss46 0.658 (0.5 m) / 0.678 (1 m). v19's Malmo advantage over the tie may
+  reflect selection + leakage.
+- Fine-tuning design: validation must be neither benchmark; exclude same-era training tiles that
+  overlap either benchmark.
