@@ -20,3 +20,5 @@ models/*.pth
 data/raw/
 data/processed/
 results/inference/
+weights/
+usb_build.log

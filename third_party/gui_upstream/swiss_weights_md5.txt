@@ -1,0 +1,2 @@
+0621c3d2004339d408148bda23622a27  weights/swiss/BWTreeNet_SwissHistorical_1946.pth
+c47df277e76d05073775f2cbc90e7e45  weights/swiss/BWTreeNet_SwissHistorical_1980s.pth

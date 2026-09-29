@@ -1,21 +1,5 @@
-# MODIFIED COPY of GrayVictoria/BWTreeNet GuiTest/model/BWTreeNet.py
-# Changes vs upstream (original in third_party/gui_upstream/BWTreeNet.py):
-#   - nn.BatchNorm2d -> nn.GroupNorm(8, C) throughout (all our checkpoints depend on this)
-#   - nn.Softmax() -> nn.Softmax(dim=1)
-#   - Luminance Enhancer (Epoch99.pth) built into forward(), frozen, before the 255 - x inversion
-# DO NOT load the released Swiss weights into this class: keys match but normalisation differs.
-# See notes/swiss_baseline.md.
 import torch
 import torch.nn as nn
-import sys
-import os
-import importlib.util
-_le_spec = importlib.util.spec_from_file_location(
-    "le_model",
-    os.path.join(os.path.dirname(__file__), "../../LuminanceEnhancer/model.py"))
-_le_module = importlib.util.module_from_spec(_le_spec)
-_le_spec.loader.exec_module(_le_module)
-enhance_net_nopool = _le_module.enhance_net_nopool
 import torch.nn.functional as F
 from torch.nn import Parameter, Softmax
 import numpy as np
@@ -33,15 +17,15 @@ class ResDoubleConv(nn.Module):
             mid_channels = out_ch
         self.conv = nn.Sequential(
             nn.Conv2d(in_ch, mid_channels, 3, padding=1, bias=False),
-            nn.GroupNorm(8, mid_channels),
+            nn.BatchNorm2d(mid_channels),
             nn.ReLU(),
             nn.Conv2d(mid_channels, out_ch, 3, padding=1, bias=False),
-            nn.GroupNorm(8, out_ch),
+            nn.BatchNorm2d(out_ch),
             nn.ReLU()
         )
         self.channel_conv = nn.Sequential(
             nn.Conv2d(in_ch, out_ch, kernel_size=1, stride=1, bias=False),
-            nn.GroupNorm(8, out_ch),
+            nn.BatchNorm2d(out_ch),
             nn.ReLU()
         )
 
@@ -79,7 +63,7 @@ class Down_Att(nn.Module):
 
         self.singleconv = nn.Sequential(
             nn.Conv2d(in_channels, out_channels//2, 3, padding=1, bias=False),
-            nn.GroupNorm(8, out_channels//2),
+            nn.BatchNorm2d(out_channels//2),
             nn.ReLU()
         )
         self.doubleconv = ResDoubleConv(
@@ -141,7 +125,7 @@ class Up_Out(nn.Module):
                 scale_factor=2, mode='bilinear', align_corners=True)
             self.conv = nn.Sequential(
                 nn.Conv2d(in_channels, out_channels, 3, padding=1, bias=False),
-                nn.GroupNorm(8, out_channels),
+                nn.BatchNorm2d(out_channels),
                 nn.ReLU()
             )
 
@@ -151,7 +135,7 @@ class Up_Out(nn.Module):
             self.conv = nn.Sequential(
                 nn.Conv2d(in_channels+out_channels, out_channels,
                           3, padding=1, bias=False),
-                nn.GroupNorm(8, out_channels),
+                nn.BatchNorm2d(out_channels),
                 nn.ReLU()
             )
 
@@ -175,7 +159,7 @@ class OutConv(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(OutConv, self).__init__()
         self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=1)
-        self.softmax = nn.Softmax(dim=1)
+        self.softmax = nn.Softmax()
         
 
     def forward(self, x):
@@ -212,22 +196,22 @@ class SEBottleneck(nn.Module):
         self.bottleneck = nn.Sequential(
             nn.Conv2d(in_channels=in_places, out_channels=places,
                       kernel_size=1, stride=1, bias=False),
-            nn.GroupNorm(8, places),
+            nn.BatchNorm2d(places),
             nn.ReLU(inplace=True),
             nn.Conv2d(in_channels=places, out_channels=places,
                       kernel_size=3, stride=stride, padding=1, bias=False),
-            nn.GroupNorm(8, places),
+            nn.BatchNorm2d(places),
             nn.ReLU(inplace=True),
             nn.Conv2d(in_channels=places, out_channels=places *
                       self.expansion, kernel_size=1, stride=1, bias=False),
-            nn.GroupNorm(8, places * self.expansion),
+            nn.BatchNorm2d(places * self.expansion),
         )
         self.se = SELayer(places * self.expansion, 8)
         if self.downsampling:
             self.downsample = nn.Sequential(
                 nn.Conv2d(in_channels=in_places, out_channels=places * self.expansion, kernel_size=1, stride=stride,
                           bias=False),
-                nn.GroupNorm(8, places * self.expansion)
+                nn.BatchNorm2d(places * self.expansion)
             )
         self.relu = nn.ReLU(inplace=True)
 
@@ -290,15 +274,15 @@ class SharpConnect(nn.Module):
 
         self.ConvOri = nn.Sequential(
             nn.Conv2d(in_ch_ori, out_ch//2, 3, padding=1, bias=False),
-            nn.GroupNorm(8, out_ch//2),
+            nn.BatchNorm2d(out_ch//2),
             nn.ReLU(),
             nn.Conv2d(out_ch//2, out_ch, 3, padding=1, bias=False),
-            nn.GroupNorm(8, out_ch),
+            nn.BatchNorm2d(out_ch),
             nn.ReLU()
         )
         self.lyo = nn.LayerNorm([Co, Ho, Wo])
         self.lyf = nn.LayerNorm([Cf, Hf, Wf])
-        self.bn = nn.GroupNorm(8, out_ch)
+        self.bn = nn.BatchNorm2d(out_ch)
         self.relu = nn.ReLU()
 
     def forward(self, x_ori, x_ftr):
@@ -353,24 +337,7 @@ class BWTreeNet(nn.Module):
 
         self.outc = OutConv(32, n_class)
 
-        # Luminance Enhancer — pretrained, frozen
-        self.le = enhance_net_nopool(scale_factor=1)
-        le_weights = os.path.join(os.path.dirname(__file__),
-                     '../../LuminanceEnhancer/weights/Epoch99.pth')
-        if os.path.exists(le_weights):
-            self.le.load_state_dict(torch.load(le_weights, map_location='cpu'))
-            for param in self.le.parameters():
-                param.requires_grad = False
-            print("Luminance Enhancer loaded and frozen")
-        else:
-            print("WARNING: LE weights not found, running without LE")
-
     def forward(self, x):
-        # Apply Luminance Enhancer on normalised [0,1] input
-        x_norm = x / 255.0
-        with torch.no_grad():
-            x_enhanced, _ = self.le(x_norm)
-        x = x_enhanced * 255.0
         x = 255-x
         x_11 = x
         x_a2 = self.avgpool2(x)
