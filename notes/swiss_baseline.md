@@ -107,3 +107,5 @@ Sanity: v19 reproduces Malmo 0.580 @0.5 / 0.569 @0.6. Equalisation from upstream
   area bias ~3% vs swiss46 ~6%, both consistent across cities.
 - Leaning: zero-shot swiss46 @0.5 as production (reproducible from public weights, threshold-insensitive);
   decide after scratch runs + 1960s/1990s visual check.
+- Ensemble re-inspected with basemap: NO water false positives (fine-tuning fixed that), but still labels
+  smaller shrubs as canopy. Ranking on definition: v19 > ft46 ensemble > Swiss46 zero-shot.
