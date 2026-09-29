@@ -42,3 +42,28 @@
 - EnhanceImage role in SwissTest.py
 - TTA bug check
 - Write scripts/24_baseline_swiss.py
+
+## Results (29 Sep 2026, scripts/24_baseline_swiss.py, TTA off, tatort-masked)
+Sanity: v19 reproduces Malmo 0.580 @0.5 / 0.569 @0.6. Equalisation from upstream util.py.
+
+| config | Malmo IoU@0.6 | Malmo area ratio | STH IoU@0.6 | STH area ratio |
+|---|---|---|---|---|
+| v19 | 0.569 | 0.935 | 0.659 | 1.105 |
+| swiss46_eq_05m | 0.622 | 1.061 | 0.658 | 1.062 |
+| swiss46_eq_1m | 0.611 | 0.909 | 0.678 | 0.957 |
+| swiss80_eq_05m | 0.507 | 1.249 | 0.536 | 1.341 |
+| swiss80_eq_1m | 0.552 | 1.082 | 0.636 | 1.199 |
+| swiss80_le_05m | 0.543 | 1.188 | 0.514 | 1.559 |
+
+- Swiss 1946 zero-shot matches/beats v19; wins 6 of 8 Malmo tiles with canopy (all 5 largest)
+- 1946 > 1980s weights everywhere; 1980s overpredicts
+- Equalisation > LE input for Swiss weights
+- Swiss IoU nearly flat across thresholds 0.3-0.8 (saturated probabilities); v19 best at 0.40 on Malmo (0.585)
+- v19 at 0.6 underestimates Malmo area (0.935) but overestimates STH (1.105); Swiss46 0.5 m is ~1.06 in both
+- Malmo tile 00000_00000 scores 0 for all models: check the reference
+- Malmo tiles look like a contiguous 3x3 grid: stitch for the 1 m arm instead of reflect-padding
+
+## Next
+- Fine-tune from Swiss 1946 weights (upstream BatchNorm architecture) on Swedish labels;
+  2 seeds each scratch vs fine-tuned (variance estimate); likely new production candidate
+- Paper 1 cannot claim v19 beats the published model; reframe around transfer + adaptation
