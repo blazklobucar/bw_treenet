@@ -109,3 +109,25 @@ Sanity: v19 reproduces Malmo 0.580 @0.5 / 0.569 @0.6. Equalisation from upstream
   decide after scratch runs + 1960s/1990s visual check.
 - Ensemble re-inspected with basemap: NO water false positives (fine-tuning fixed that), but still labels
   smaller shrubs as canopy. Ranking on definition: v19 > ft46 ensemble > Swiss46 zero-shot.
+- Scratch runs (upstream arch, equalise, no Swiss init): best val 0.613 (s1, ep 27) / 0.611 (s2, ep 31)
+  vs ft46_s1 0.678.
+- TEST (results/finetune_eval_all), IoU@0.5 STH: sc_s1 0.451, sc_s2 0.518 (vs ft 0.668/0.647, swiss46 0.658, v19 0.655);
+  Malmo: sc 0.353/0.409 (vs ft 0.628/0.611, swiss46 0.623, v19 0.580).
+  -> pretraining worth +0.15-0.20 IoU on test cities (only +0.065 on GTB val): scratch generalises poorly.
+  -> scratch unstable: seed spread 0.07 on STH, area ratio 0.96-1.45.
+  -> v19 (no Swiss init) reaches 0.655: its long v12 lineage / LE / GroupNorm / GTB1970 in training /
+     Malmo selection carry what short scratch training lacks. Scratch arm is a control for fine-tuning,
+     not a stand-in for v19.
+
+## Visual era check (29 Sep 2026, QGIS, 8 windows; Swiss46 red, v19 yellow, ft46 ensemble cyan)
+- Swiss46 labels vegetation in general: overpredicts shrub/low vegetation and forest edges (GTB 1960s/1970s/1990s),
+  and water surfaces (GTB 1990s). v19 excludes small vegetation and water -> matches our tree-canopy definition.
+- Malmo 1960 (leaf-off imagery): v19 much better on urban trees; Swiss46 misses leaf-off deciduous trees.
+  v19 has more false positives on open fields.
+- Fine-tuned ensemble: no water false positives, but still labels smaller shrubs as canopy.
+  Ranking on definition: v19 > ft46 ensemble > Swiss46 zero-shot.
+- Benchmarks (Malmo/STH 1970) underrepresent these cases -> similar IoU hides a definitional mismatch.
+- DECISION: keep v19 as production.
+- Paper 1 angle: pretrained model matches IoU on urban test tiles but transfers a different canopy definition;
+  local labels teach tree canopy (incl. leaf-off) vs vegetation. Needs a targeted test set to quantify.
+- (QGIS display issue was a corrupted project file, not the exports; GeoTIFFs are correctly in EPSG:3006.)
