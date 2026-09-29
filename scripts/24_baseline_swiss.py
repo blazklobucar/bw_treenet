@@ -47,6 +47,7 @@ SWISS = {
 LE_MODEL = os.path.join(HERE, "BWTreeNet", "LuminanceEnhancer", "model.py")
 LE_WEIGHTS = os.path.join(HERE, "BWTreeNet", "LuminanceEnhancer", "weights", "Epoch99.pth")
 THRESHOLDS = [round(t, 2) for t in np.arange(0.30, 0.801, 0.05)]
+FT_CONFIGS = ["ft46_s1", "ft46_s2", "sc_s1", "sc_s2"]   # from 25_train_finetune.py
 ALL_CONFIGS = ["v19", "swiss80_eq_05m", "swiss46_eq_05m",
                "swiss80_eq_1m", "swiss46_eq_1m", "swiss80_le_05m"]
 
@@ -137,6 +138,8 @@ def load_le():
 def build(cfg):
     if cfg == "v19":
         return S10.load_model(S10.MODELS["v19"], False), 1
+    if cfg in FT_CONFIGS:   # upstream BatchNorm arch + equalisation, native 0.5 m
+        return SwissRunner(load_swiss(os.path.join(HERE, "models", f"bwtreenet_{cfg}_best.pt")), "eq").eval(), 1
     weights, prep, res = cfg.split("_")
     le = load_le() if prep == "le" else None
     return SwissRunner(load_swiss(SWISS[weights]), prep, le).eval(), (2 if res == "1m" else 1)
@@ -253,7 +256,9 @@ def run(configs, benches):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--configs", nargs="+", default=ALL_CONFIGS, choices=ALL_CONFIGS)
+    ap.add_argument("--configs", nargs="+", default=ALL_CONFIGS, choices=ALL_CONFIGS + FT_CONFIGS)
+    ap.add_argument("--out", default=OUT)
     ap.add_argument("--bench", nargs="+", default=["malmo", "sth"], choices=list(BENCH))
     a = ap.parse_args()
+    OUT = a.out
     run(a.configs, a.bench)
