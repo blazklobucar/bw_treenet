@@ -103,3 +103,7 @@ Sanity: v19 reproduces Malmo 0.580 @0.5 / 0.569 @0.6. Equalisation from upstream
 - Implication: v18 single-run ablation differences (~0.02) are within seed noise.
 - Fine-tuning softens probabilities (threshold matters again); area ratio seed-dependent (0.92-1.02) vs swiss46 steady ~1.06.
 - Production candidate: zero-shot swiss46 (pending scratch runs and ensemble check).
+- Ensemble ft46_s1+s2 (mean prob) @0.5: STH IoU 0.666 area 1.025; Malmo 0.626 area 1.035. No IoU gain beyond noise;
+  area bias ~3% vs swiss46 ~6%, both consistent across cities.
+- Leaning: zero-shot swiss46 @0.5 as production (reproducible from public weights, threshold-insensitive);
+  decide after scratch runs + 1960s/1990s visual check.
