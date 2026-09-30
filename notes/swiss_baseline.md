@@ -131,3 +131,10 @@ Sanity: v19 reproduces Malmo 0.580 @0.5 / 0.569 @0.6. Equalisation from upstream
 - Paper 1 angle: pretrained model matches IoU on urban test tiles but transfers a different canopy definition;
   local labels teach tree canopy (incl. leaf-off) vs vegetation. Needs a targeted test set to quantify.
 - (QGIS display issue was a corrupted project file, not the exports; GeoTIFFs are correctly in EPSG:3006.)
+- Scratch ensemble (blue): follows v19 closely overall, BUT too sensitive to smaller vegetation and has the MOST
+  false positives on agricultural fields of all models.
+  -> shrub/small-vegetation bias is NOT only a Swiss-pretraining effect; the new pipeline shows it without pretraining.
+  Candidate causes vs v19: equalisation instead of LE; GTB 1970 removed from training (shrubby landscapes);
+  ~30 epochs vs v12's long history; BatchNorm vs GroupNorm. Not disentangled.
+- Paper 1 wording: similar IoU hides differences at the tree/shrub boundary and on fields; v19 handles these best;
+  Swiss pretraining adds vegetation bias on top of the new pipeline's. Next: targeted test set to quantify.
